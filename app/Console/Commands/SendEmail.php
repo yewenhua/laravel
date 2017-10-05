@@ -38,6 +38,7 @@ class SendEmail extends Command
      */
     public function handle()
     {
+        //模板邮件
         Mail::send('mail', ['name'=>'command send mail '.$this->argument('param')], function($message){
             $message->from('ye_goodluck@aliyun.com', 'cat');
             $message->subject('have a command');

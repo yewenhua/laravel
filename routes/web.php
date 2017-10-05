@@ -86,10 +86,10 @@ Route::get('member/second', 'MemberController@second');
 Route::get('member/process', 'MemberController@process');
 Route::get('member/users', 'MemberController@users');
 Route::get('member/service', 'MemberController@service');
+
+
 Route::get('voc', 'VocController@index');
-Route::get('wxlogin', 'VocController@wxlogin');
-
-
+Route::get('voc/wxlogin', 'VocController@wxlogin');
 
 
 Auth::routes();
