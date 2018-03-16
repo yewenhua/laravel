@@ -88,10 +88,55 @@ Route::get('member/users', 'MemberController@users');
 Route::get('member/service', 'MemberController@service');
 
 
-Route::get('voc', 'VocController@index');
+Route::get('voc/index', 'VocController@index');
 Route::get('voc/wxlogin', 'VocController@wxlogin');
+Route::get('voc/wxsignin', 'VocController@signinByOpenid');
+Route::get('voc/flush', 'VocController@flush');
+Route::get('voc/share', 'VocController@share');
+Route::get('voc/sharebegin', 'VocController@shareBegin');
+Route::get('voc/shareopen', 'VocController@shareOpen');
+Route::get('voc/question', 'VocController@question');
+Route::get('voc/download', 'VocController@download');
+Route::get('voc/zhaopin', 'VocController@zhaopin');
+Route::get('voc/tiaoma', 'VocController@tiaoma');
+Route::get('voc/install', 'VocController@install');
+Route::get('voc/baoxiu', 'VocController@baoxiu');
+Route::get('voc/comment', 'VocController@comment');
+Route::get('voc/baoxiu_service', 'VocController@baoxiu_service');
+Route::get('voc/comment_service', 'VocController@comment_service');
+Route::get('voc/navigate', 'VocController@navigate');
 
 
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
+
+
+//用户
+Route::get('admins', 'AdminController@index'); //用户列表页
+Route::get('admins/create', 'AdminController@create'); //用户创建页
+Route::post('admins/store', 'AdminController@store'); //创建用户保存
+Route::get('admins/{admin}/role', 'AdminController@role');  //用户角色页   路由模型绑定
+Route::post('admins/{admin}/role', 'AdminController@storeRole'); //保存用户角色页   路由模型绑定
+
+
+//角色
+Route::get('roles', 'RoleController@index');   //列表展示页面
+Route::get('roles/create', 'RoleController@create'); //创建页面
+Route::post('roles/store', 'RoleController@store'); //创建提交页面
+Route::get('roles/{role}/permission', 'RoleController@permission'); //角色权限页面  路由模型绑定
+Route::post('roles/{role}/permission', 'RoleController@storePermission'); //角色权限提交页面  路由模型绑定
+
+
+//权限
+Route::get('permissions', 'PermissionController@index');
+Route::get('permissions/create', 'PermissionController@create');
+Route::post('permissions/store', 'PermissionController@store');
+
+
+
+Route::get('voc/number', 'VocController@number');
+Route::get('member/distance', 'MemberController@distance');
+Route::get('member/location', 'MemberController@location');
+
+

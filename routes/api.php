@@ -17,7 +17,7 @@ use Illuminate\Http\JsonResponse;
 
 Route::group(['namespace' => 'API', 'middleware'=>['cros']], function () {
     Route::post('login', 'AuthController@login');
-    Route::delete('logout', 'AuthController@logout');
+    Route::get('logout', 'AuthController@logout');
     Route::post('register', 'AuthController@register');
 
     Route::group(['middleware' => 'jwt.auth'], function () {
@@ -33,32 +33,40 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::group(['middleware' => 'jwt.auth'], function () {
+    //用户
+    Route::get('admins', 'AdminController@index'); //用户列表页
+    Route::get('admins/create', 'AdminController@create'); //用户创建页
+    Route::post('admins/store', 'AdminController@store'); //创建用户保存
+    Route::get('admins/{user}/role', 'AdminController@role');  //用户角色页   路由模型绑定
+    Route::post('admins/{user}/role', 'AdminController@storeRole'); //保存用户角色页   路由模型绑定
+    Route::post('admins/delete', 'AdminController@delete');
+    Route::post('admins/chgpwd', 'AdminController@chgpwd');
 
 
+    //角色
+    Route::get('roles', 'RoleController@index');   //列表展示页面
+    Route::get('roles/create', 'RoleController@create'); //创建页面
+    Route::post('roles/store', 'RoleController@store'); //创建提交页面
+    Route::get('roles/{role}/permission', 'RoleController@permission'); //角色权限页面  路由模型绑定
+    Route::post('roles/{role}/permission', 'RoleController@storePermission'); //角色权限提交页面  路由模型绑定
+    Route::post('roles/delete', 'RoleController@delete');
 
-/*
- * add
- * use the jwt.refresh middleware, the token is refreshed on every request.
- * It's returned as a header on the response, so you need to take that header and store the new token on every request.
- * 当token失效之后，访问这个地址，把旧token带上，会得到一个新的token。自己将新token保存，访问api时使用新token。如此反复。
- * token的有效很短，默认是一个小时，刷新时间长达两个星期
- */
-/*
-Route::post('auth/refresh-token', ['middleware' => 'jwt.refresh', function() {
-    try {
-        $old_token = JWTAuth::getToken();
-        $token = JWTAuth::refresh($old_token);
-        JWTAuth::invalidate($old_token);
-    } catch (TokenExpiredException $e) {
-        throw new AuthException(
-            Constants::get('error_code.refresh_token_expired'),
-            trans('errors.refresh_token_expired'), $e);
-    } catch (JWTException $e) {
-        throw new AuthException(
-            Constants::get('error_code.token_invalid'),
-            trans('errors.token_invalid'), $e);
-    }
 
-    return response()->json(compact('token'));
-}]);
-*/
+    //权限
+    Route::get('permissions', 'PermissionController@index');
+    Route::get('permissions/create', 'PermissionController@create');
+    Route::post('permissions/store', 'PermissionController@store');
+    Route::post('permissions/delete', 'PermissionController@delete');
+
+    Route::get('allpermissions', 'PermissionController@permissions');
+});
+
+//小程序保存个人多媒体信息
+Route::post('savefile', 'VocController@savefile');
+Route::post('documents', 'VocController@documents');
+
+Route::group(['namespace' => 'API'], function () {
+    Route::get('auth/refresh', 'AuthController@refresh');
+});
+

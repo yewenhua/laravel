@@ -62,6 +62,94 @@
             .m-b-md {
                 margin-bottom: 30px;
             }
+
+
+            /** 小孩动画**/
+            @keyframes run {
+                0% {
+                    background-position: 0 0;
+                }
+                100% {
+                    background-position: -6000px 0;
+                }
+            }
+            @-webkit-keyframes run {
+                0% {
+                    background-position: 0 0;
+                }
+                100% {
+                    background-position: -6000px 0;
+                }
+            }
+            #sprite {
+                margin: 20px auto;
+                width: 75px;
+                height: 90px;
+                background: url("{{asset('images/boy.png')}}") 0 0 no-repeat;
+                -webkit-animation: run 1s steps(80) infinite;/*80帧*/
+                animation: run 1s steps(80) infinite;
+            }
+
+
+
+            .audio_play_area{
+                margin: 20px auto;
+            }
+            .icon_audio_default {
+                background: transparent url("{{asset('images/iconloop.png')}}") no-repeat 0 0;
+                width: 18px;
+                height: 25px;
+                vertical-align: middle;
+                display: inline-block;
+                -webkit-background-size: 54px 25px;
+                background-size: 54px 25px;
+                background-position: -36px center;
+            }
+            .icon_audio_playing {
+                background: transparent url("{{asset('images/iconloop.png')}}") no-repeat 0 0;
+                width: 18px;
+                height: 25px;
+                vertical-align: middle;
+                display: inline-block;
+                -webkit-background-size: 54px 25px;
+                background-size: 54px 25px;
+                -webkit-animation: audio_playing 1s infinite;
+                background-position: 0px center;
+            }
+            @keyframes audio_playing {
+                30% {
+                    background-position: 0px center;
+                }
+                31% {
+                    background-position: -18px center;
+                }
+                61% {
+                    background-position: -18px center;
+                }
+                61.5% {
+                    background-position: -36px center;
+                }
+                100% {
+                    background-position: -36px center;
+                }
+            }
+            @-webkit-keyframes audio_playing {
+                30% {
+                    background-position: 0px center;
+                }
+                31% {
+                    background-position: -18px center;
+                }
+                61% {
+                    background-position: -18px center;
+                }
+                61.5% {
+                    background-position: -36px center;
+                }
+                100% {
+                    background-position: -36px center;
+                }
+            }
         </style>
     </head>
     <body>
@@ -88,6 +176,12 @@
                     <a href="https://laravel-news.com">News</a>
                     <a href="https://forge.laravel.com">Forge</a>
                     <a href="https://github.com/laravel/laravel">GitHub</a>
+                </div>
+
+                <div id="sprite"></div>
+                <div class="audio_play_area">
+                    <i class="icon_audio_default"></i>
+                    <i class="icon_audio_playing"></i>
                 </div>
             </div>
         </div>

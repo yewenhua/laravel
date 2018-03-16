@@ -4,10 +4,12 @@ namespace App;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;  //添加软删除
 
 class User extends Authenticatable
 {
     use Notifiable;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -15,7 +17,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'desc', 'email', 'password',
     ];
 
     /**
@@ -26,6 +28,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    protected  $dates = ['deleted_at'];  //添加软删除
 
     /**
      * 一对一关系
@@ -57,5 +61,32 @@ class User extends Authenticatable
      */
     public function group(){
         return $this->belongsToMany('App\Group', 'group_user', 'user_id', 'group_id');
+    }
+
+    public function roles(){
+        return $this->belongsToMany('App\Role', 'role_user', 'user_id', 'role_id');
+    }
+
+    //判断用户是否有某个角色，某些角色
+    public function isInRoles($roles){
+        return !!$roles->intersect($this->roles)->count();   //两个感叹号返回布尔类型   intersect 方法返回两个集合的交集
+    }
+
+    //给用户分配角色
+    public function assignRole($role){
+        return $this->roles()->save($role);
+    }
+
+    //取消分配角色
+    public function deleteRole($role){
+        return $this->roles()->detach($role);
+    }
+
+    /*
+     * 用户是否有某项权限
+     * 权限的角色和用户的角色是否有交集
+     */
+    public function hasPermission($permission){
+        return $this->isInRoles($permission->roles);
     }
 }

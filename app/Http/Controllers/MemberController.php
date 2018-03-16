@@ -20,8 +20,14 @@ use Illuminate\Support\Facades\Auth;
 use App\Miaosha;
 use Illuminate\Support\Facades\Redis;
 use WxpayService;   //引入 WxpayService 门面
+use UtilService;
 
 class MemberController extends Controller{
+
+    const AJAX_SUCCESS = 0;
+    const AJAX_FAIL = -1;
+    const AJAX_NO_DATA = 10001;
+    const AJAX_NO_AUTH = 99999;
 
     public function info(){
         return Member::getMember();
@@ -522,5 +528,133 @@ class MemberController extends Controller{
     public function service(){
         //静态方式调用
         return WxpayService::notify();
+    }
+
+    /*
+     * api接口，需使用https协议
+     * $param username
+     * $param password
+     * @return uid & token
+     */
+    public function signin(){
+        //……其他操作
+        $uid = md5(9999);
+        $token = md5(8888);
+        $key = md5($token.'hello');
+        $res = Cache::add($key, $uid, 60); //1h
+        if($res){
+            return UtilService::format_data(self::AJAX_SUCCESS, '登录成功', [
+                "uid" => $uid,
+                "token" => $token
+            ]);
+        }
+        else{
+
+        }
+    }
+
+    /*
+     * url请求拦截规则
+     * 1、验证时间戳是否有效期内
+     * 2、缓存中是否有UID与token对应
+     * 3、按字典序排序参数
+     * 4、请求参数合成字符串
+     * $param为请求参数
+     * $token和$uid通过https协议后的登录操作获取，然后保存在客户端
+     * 用户退出登录时清空token
+     * 参数里添加uid和timestamp uid后台获取token timestamp验证时效
+     */
+    public function check_query($param, $urlencode=false)
+    {
+        //添加时间戳，隔太久失效，防止被截取重复调用
+        if((time() - $param['timestamp'] ) <= 60){
+            $key = md5($param['token'].'hello');
+            $uid = Cache::get($key);
+            if($uid){
+                $buff = "";
+                //签名步骤一：按字典序排序参数
+                ksort($param);
+                $buff = $this->ToUrlParams($param);
+
+                $string = '';
+                if (strlen($buff) > 0)
+                {
+                    $string = $buff;
+                    //签名步骤二：在string后加入KEY
+                    $pub_key = '123456789';
+                    $string = $string."&key=".$pub_key;
+                    //签名步骤三：MD5加密
+                    $string = md5($string);
+                    //签名步骤四：所有字符转为大写
+                    $res_sign = strtoupper($string);
+                    if($param['sign'] == $res_sign){
+                        //right
+                    }
+                    else{
+                        //wrong
+                    }
+                }
+                else{
+                    //param w
+                }
+            }
+            else{
+                //token fail
+            }
+        }
+        else{
+            //timeout
+        }
+    }
+
+    protected function ToUrlParams($urlObj)
+    {
+        $buff = "";
+        foreach ($urlObj as $k => $v)
+        {
+            if($k != "sign"){
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
+
+        $buff = trim($buff, "&");
+        return $buff;
+    }
+
+    //通过两地经纬度获得两地之间的距离，单位米
+    public function distance(){
+        $key = '32a7b5ccd33e2feca49773d5f6d12d96';
+        $origins = '116.481028,39.989643';
+        $destination = '114.465302,40.004717';
+        $url = 'http://restapi.amap.com/v3/distance?origins='.$origins.'&destination='.$destination.'&key='.$key;
+        $res = UtilService::curl_get($url);
+        if($res['status'] == 1){
+            $results = $res['results'][0];
+            return array(
+                "distance"=>$results['distance'],
+                "duration"=>$results['duration']
+            );
+        }
+        else{
+            return 'fail';
+        }
+    }
+
+    public function location(){
+        $key = '32a7b5ccd33e2feca49773d5f6d12d96';
+        $address = '北京市朝阳区阜通东大街6号';
+        $url = 'http://restapi.amap.com/v3/geocode/geo?address='.$address.'&key='.$key;
+        $res = UtilService::curl_get($url);
+        if($res['status'] == 1){
+            $location = $res['geocodes'][0]['location'];
+            $location_array = explode(',', $location);
+            return array(
+                "longitude"=>$location_array[0],
+                "latitude"=>$location_array[1]
+            );
+        }
+        else{
+            return 'fail';
+        }
     }
 }

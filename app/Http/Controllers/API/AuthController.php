@@ -23,9 +23,10 @@ class AuthController extends Controller
      */
     public function login(UserLoginRequest $request)
     {
+        $credentials = $request->only('email', 'password');
         try {
             // attempt to verify the credentials and create a token for the user
-            if (!$token = JWTAuth::attempt($request->only('email', 'password'))) {
+            if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'invalid_credentials'], 401);
             }
         } catch (JWTException $e) {
@@ -34,7 +35,12 @@ class AuthController extends Controller
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
 
-        return response()->json(compact('token'));
+        $user = User::where('email', $credentials['email'])->first();
+        $roles = $user->roles;
+        foreach ($roles as $role) {
+            $permissions = $role->permissions;
+        }
+        return response()->json(compact('token', 'user'));
     }
 
     /**
@@ -63,6 +69,13 @@ class AuthController extends Controller
         ];
         $user = User::create($newUser);
         $token = JWTAuth::fromUser($user);
+
+        return response()->json(compact('token'));
+    }
+
+    public function refresh(){
+        $oldToken = JWTAuth::getToken();
+        $token = JWTAuth::refresh($oldToken);
 
         return response()->json(compact('token'));
     }

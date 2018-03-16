@@ -25,6 +25,12 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+        //定义gate Gates 总是接收用户实例作为第一个参数
+        $permissions = \App\Permission::all();
+        foreach ($permissions as $permission){
+            Gate::define($permission->desc, function ($user)use($permission){
+                return $user->hasPermission($permission);
+            });
+        }
     }
 }

@@ -103,7 +103,7 @@
                 name = '游客';
                 room_id = 1;
                 // 创建websocket
-                ws = new WebSocket("ws://" + document.domain + ":7272");
+                ws = new WebSocket("wss://" + document.domain + ":7272");
                 // 当socket连接打开时，输入用户名
                 ws.onopen = onopen;
                 // 当有消息时根据消息类型显示不同信息
