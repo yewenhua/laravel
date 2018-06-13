@@ -91,6 +91,9 @@ Route::get('member/service', 'MemberController@service');
 Route::get('voc/index', 'VocController@index');
 Route::get('voc/wxlogin', 'VocController@wxlogin');
 Route::get('voc/wxsignin', 'VocController@signinByOpenid');
+Route::get('voc/bindwx', 'VocController@bindByOpenid');
+Route::get('voc/keylist', 'VocController@keylist');
+Route::get('voc/getkey', 'VocController@getkey');
 Route::get('voc/flush', 'VocController@flush');
 Route::get('voc/share', 'VocController@share');
 Route::get('voc/sharebegin', 'VocController@shareBegin');
@@ -105,34 +108,15 @@ Route::get('voc/comment', 'VocController@comment');
 Route::get('voc/baoxiu_service', 'VocController@baoxiu_service');
 Route::get('voc/comment_service', 'VocController@comment_service');
 Route::get('voc/navigate', 'VocController@navigate');
+Route::get('voc/app', 'VocController@app');
+Route::get('voc/scan', 'VocController@scan');
 
 
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
-
-
-//用户
-Route::get('admins', 'AdminController@index'); //用户列表页
-Route::get('admins/create', 'AdminController@create'); //用户创建页
-Route::post('admins/store', 'AdminController@store'); //创建用户保存
-Route::get('admins/{admin}/role', 'AdminController@role');  //用户角色页   路由模型绑定
-Route::post('admins/{admin}/role', 'AdminController@storeRole'); //保存用户角色页   路由模型绑定
-
-
-//角色
-Route::get('roles', 'RoleController@index');   //列表展示页面
-Route::get('roles/create', 'RoleController@create'); //创建页面
-Route::post('roles/store', 'RoleController@store'); //创建提交页面
-Route::get('roles/{role}/permission', 'RoleController@permission'); //角色权限页面  路由模型绑定
-Route::post('roles/{role}/permission', 'RoleController@storePermission'); //角色权限提交页面  路由模型绑定
-
-
-//权限
-Route::get('permissions', 'PermissionController@index');
-Route::get('permissions/create', 'PermissionController@create');
-Route::post('permissions/store', 'PermissionController@store');
-
+Route::get('fish', 'HomeController@maoxy');
+Route::get('jpush', 'VocController@jpush');
 
 
 Route::get('voc/number', 'VocController@number');

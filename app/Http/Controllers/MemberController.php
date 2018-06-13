@@ -413,19 +413,17 @@ class MemberController extends Controller{
      */
     public function bind(Request $request){
         $client_id = $request->input('client_id');
+        $group_id = $request->input('group_id');
         // 设置GatewayWorker服务的Register服务ip和端口，请根据实际情况改成实际值
         Gateway::$registerAddress = '127.0.0.1:1236';
 
         $user = $request->user();
-        $data = $user['attributes'];
-        $uid      = $data['id'];
-        $group_id = $data['id'];
         // client_id与uid绑定
-        Gateway::bindUid($client_id, $uid);
+        Gateway::bindUid($client_id, $user->id);
         // 加入某个群组（可调用多次加入多个群组）
         Gateway::joinGroup($client_id, $group_id);
 
-        $rtn = array("code"=>0, "msg"=>"success");
+        $rtn = array("code"=>0, "msg"=>"success", "uid"=>$user->id);
         return response()->json($rtn);
     }
 

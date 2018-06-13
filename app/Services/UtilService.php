@@ -10,6 +10,10 @@ class UtilService
             $headers[] = $data['diy_header'];
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             unset($data['diy_header']);
+            if(isset($data['json'])){
+                unset($data['json']);
+                $data = json_encode($data);
+            }
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data); // Post提交的数据包
         }
         else{

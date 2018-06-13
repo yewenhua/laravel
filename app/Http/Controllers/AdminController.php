@@ -16,39 +16,32 @@ class AdminController extends Controller
     const AJAX_NO_AUTH = 99999;
 
     public function index(Request $request){
-        $path = $request->input('path');
         $userObj = JWTAuth::parseToken()->authenticate();
-        $permission = \App\Permission::where('desc', $path)->first();
-        if ($permission && Gate::allows($path, $permission)) {
-            $page = $request->input('page');
-            $limit = $request->input('num');
-            $search = $request->input('search');
-            $offset = ($page - 1) * $limit;
-            $like = '%' . $search . '%';
+        $page = $request->input('page');
+        $limit = $request->input('num');
+        $search = $request->input('search');
+        $offset = ($page - 1) * $limit;
+        $like = '%' . $search . '%';
 
-            $total = \App\User::where('name', 'like', $like)
-                ->orderBy('id', 'desc')
-                ->get();
+        $total = \App\User::where('name', 'like', $like)
+            ->orderBy('id', 'desc')
+            ->get();
 
-            $users = \App\User::where('name', 'like', $like)
-                ->orderBy('id', 'desc')
-                ->offset($offset)
-                ->limit($limit)
-                ->get();
+        $users = \App\User::where('name', 'like', $like)
+            ->orderBy('id', 'desc')
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
 
-            if ($users) {
-                $res = array(
-                    'user' => $userObj,
-                    'data' => $users,
-                    'total' => count($total)
-                );
-                return UtilService::format_data(self::AJAX_SUCCESS, '获取成功', $res);
-            } else {
-                return UtilService::format_data(self::AJAX_FAIL, '获取失败', '');
-            }
-        }
-        else{
-            return UtilService::format_data(self::AJAX_NO_AUTH, '没有权限', '');
+        if ($users) {
+            $res = array(
+                'user' => $userObj,
+                'data' => $users,
+                'total' => count($total)
+            );
+            return UtilService::format_data(self::AJAX_SUCCESS, '获取成功', $res);
+        } else {
+            return UtilService::format_data(self::AJAX_FAIL, '获取失败', '');
         }
     }
 
@@ -159,5 +152,15 @@ class AdminController extends Controller
         else{
             return UtilService::format_data(self::AJAX_FAIL, '用户错误', '');
         }
+    }
+
+    public function userInfo(){
+        $userObj = JWTAuth::parseToken()->authenticate();
+        $roles = $userObj->roles;
+        foreach ($roles as $role) {
+            $permissions = $role->permissions;
+        }
+
+        return UtilService::format_data(self::AJAX_SUCCESS, '获取成功', $userObj);
     }
 }

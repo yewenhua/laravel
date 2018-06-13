@@ -9,12 +9,15 @@ use UtilService;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
 use App\Document;
+use JPush\Client as JPush;
 
 class VocController extends Controller
 {
+    public $base_url = 'https://vhome.voc.so/v1';
+    public $auth_url = 'https://vhome.voc.so';
+    public $app_key = '31424f96a61d063dbbb8b0fc';
+    public $master_secret = 'd736bdfcf594fd1e8cc5eeed';
 
-    public $bace_url = 'https://iot-app.ouganyun.com/v1';
-    public $auth_url = 'https://iot-app.ouganyun.com';
     public $wxapiurl = '';
 
     const AJAX_SUCCESS = 0;
@@ -238,6 +241,129 @@ class VocController extends Controller
         }
     }
 
+    public function keylist(Request $request)
+    {
+        $key = $request->input('third_session');
+        $info = $this->getSessionByKey($key);
+        $openid = $info['openid'];
+
+        if($openid) {
+            $url = $this->base_url. '/deviceKey/list?openid='.$openid;
+            $res = UtilService::curl_get($url);
+            if (isset($res['type']) && $res['type'] == 'SUCCESS') {
+                return UtilService::format_data(self::AJAX_SUCCESS, '操作成功', $res['data']);
+            } else {
+                return UtilService::format_data(self::AJAX_FAIL, '操作失败', $res);
+            }
+        }
+        else{
+            //session失效
+            return UtilService::format_data(self::AJAX_NO_DATA, 'session失效', '');
+        }
+    }
+
+    public function getkey(Request $request)
+    {
+        $key = $request->input('third_session');
+        $code = $request->input('code');
+        $info = $this->getSessionByKey($key);
+        $openid = $info['openid'];
+
+        if($openid && $code) {
+            $url = $this->base_url. '/deviceKey/addDeviceKey/'.$code.'?openid='.$openid;
+            $res = UtilService::curl_get($url);
+            if (isset($res['type']) && $res['type'] == 'SUCCESS') {
+                return UtilService::format_data(self::AJAX_SUCCESS, '操作成功', $res['data']);
+            } else {
+                return UtilService::format_data(self::AJAX_FAIL, $res['content'], $res);
+            }
+        }
+        else{
+            //session失效
+            return UtilService::format_data(self::AJAX_NO_DATA, '参数失效', '');
+        }
+    }
+
+    public function directive(Request $request)
+    {
+        $key = $request->input('third_session');
+        $deviceKeyId = $request->input('deviceKeyId');
+        $command = $request->input('command');
+        $directive = $request->input('directive');
+        $info = $this->getSessionByKey($key);
+        $openid = $info['openid'];
+
+        if($openid && $deviceKeyId && $command && $directive) {
+            $data = array(
+                "diy_header" => 'Content-Type: application/json',
+                "json" => true,
+                'deviceKeyId'=>$deviceKeyId,
+                'command'=>$command,
+                'directive'=>$directive,
+                'openid'=>$openid
+            );
+            $url = $this->base_url. '/deviceKey/execute';
+            $res = UtilService::curl_post($url, $data);
+            return $res;
+        }
+        else{
+            //session失效
+            return UtilService::format_data(self::AJAX_NO_DATA, '参数失效', '');
+        }
+    }
+
+    public function sendresult(Request $request)
+    {
+        $key = $request->input('third_session');
+        $directiveId = $request->input('directiveId');
+        $result = $request->input('result');
+        $info = $this->getSessionByKey($key);
+        $openid = $info['openid'];
+
+        if($openid && $directiveId && $result) {
+            $data = array(
+                "diy_header" => 'Content-Type: application/json',
+                "json" => true,
+                'result'=>$result,
+                'directiveId'=>$directiveId,
+                'openid'=>$openid
+            );
+            $url = $this->base_url. '/deviceKey/result';
+            $res = UtilService::curl_post($url, $data);
+            return $res;
+        }
+        else{
+            //session失效
+            return UtilService::format_data(self::AJAX_NO_DATA, '参数失效', '');
+        }
+    }
+
+    public function bindByOpenid(Request $request)
+    {
+        $key = $request->input('third_session');
+        $mobile = $request->input('mobile');
+        $token = $request->input('token');
+        $info = $this->getSessionByKey($key);
+        $openid = $info['openid'];
+
+        if($openid && $token && $mobile) {
+            $url = $this->base_url. '/user/openidBind/'.$openid.'?access_token='.$token;
+            $res = UtilService::curl_get($url);;
+
+            if (isset($res['type']) && $res['type'] == 'SUCCESS') {
+                //已绑定
+                return UtilService::format_data(self::AJAX_SUCCESS, '绑定成功', $res);
+            } else {
+                //未绑定
+                return UtilService::format_data(self::AJAX_FAIL, '绑定失败', '');
+            }
+        }
+        else{
+            //session失效
+            return UtilService::format_data(self::AJAX_NO_DATA, '参数失效', '');
+        }
+    }
+
     //通过openid 判断是否绑定
     private function checkByOpenid($openid){
         $data = array(
@@ -317,4 +443,55 @@ class VocController extends Controller
         return view('share', $data);
     }
 
+    public function jpush(){
+        $client = new JPush($this->app_key, $this->master_secret);
+        $pusher = $client->push();
+        $pusher->setPlatform('all');
+        $pusher->addAllAudience();
+        $pusher->setNotificationAlert('Hello, JPush');
+        $pusher->message('极光推送', array(
+            'title' => 'hello jpush',
+            'extras' => array(
+                'key' => 'value',
+                'jiguang' => 'Haha'
+            ),
+        ));
+        try {
+            $pusher->send();
+            return 'SUCCESS_'.date('Y-m-d H:i:s');
+        } catch (\JPush\Exceptions\JPushException $e) {
+            return 'FAIL';
+        }
+    }
+
+    public function app(){
+        $data = array();
+        return view('app', $data);
+    }
+
+    public function scan(){
+        //全部变成小写字母
+        $agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+        $type = 'other';
+        //分别进行判断
+        if(strpos($agent, 'iphone') || strpos($agent, 'ipad'))
+        {
+            $type = 'ios';
+        }
+
+        if(strpos($agent, 'android'))
+        {
+            $type = 'android';
+        }
+
+        if($type == 'ios'){
+            header('Location: https://itunes.apple.com/cn/app/v%E5%AE%B6-%E6%99%BA%E8%83%BD%E7%94%9F%E6%B4%BB/id1271959417?mt=8');
+        }
+        elseif($type == 'android'){
+            header('Location: http://ziyuan.voc.so/app/vhome.apk');
+        }
+        else{
+            return '暂不支持该系统手机';
+        }
+    }
 }

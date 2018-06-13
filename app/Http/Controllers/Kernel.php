@@ -59,6 +59,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'activity' => \App\Http\Middleware\Activity::class,
         'cros' => \App\Http\Middleware\AccessControlAllowOrigin::class,
+        'permission' => \App\Http\Middleware\CheckPermission::class,
 
         //jwt add
         'jwt.auth' => 'Tymon\JWTAuth\Middleware\GetUserFromToken',

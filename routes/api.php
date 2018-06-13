@@ -33,7 +33,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::group(['middleware' => 'jwt.auth'], function () {
+Route::group(['middleware' => ['jwt.auth', 'permission']], function () {
     //用户
     Route::get('admins', 'AdminController@index'); //用户列表页
     Route::get('admins/create', 'AdminController@create'); //用户创建页
@@ -66,7 +66,14 @@ Route::group(['middleware' => 'jwt.auth'], function () {
 Route::post('savefile', 'VocController@savefile');
 Route::post('documents', 'VocController@documents');
 
+//小程序开锁
+Route::post('directive', 'VocController@directive');
+Route::post('sendresult', 'VocController@sendresult');
+
 Route::group(['namespace' => 'API'], function () {
     Route::get('auth/refresh', 'AuthController@refresh');
 });
 
+Route::group(['middleware' => ['jwt.auth']], function () {
+    Route::get('admins/info', 'AdminController@userInfo');
+});
